@@ -18,8 +18,8 @@ chrome-cdp:
             endpoint returns through the proxy. Container-only — every feature
             assumes a headless context, so it is NOT for target:local installs.
         require:
-            - chrome
-            - supervisord
+            - '@github.com/opencharly/layer-chrome:v2026.235.2057'
+            - '@github.com/opencharly/layer-supervisord:v2026.235.2056'
             # plugin-cdp serves the cdp: check verb (out-of-process); chrome-cdp authors cdp:
             # checks AND is the chrome-headless CDP driver, so requiring it puts plugin-cdp in
             # every composing image's closure for collectReferencedPluginWords to load.
