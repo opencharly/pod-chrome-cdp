@@ -23,7 +23,7 @@ chrome-cdp:
             # plugin-cdp serves the cdp: check verb (out-of-process); chrome-cdp authors cdp:
             # checks AND is the chrome-headless CDP driver, so requiring it puts plugin-cdp in
             # every composing image's closure for collectReferencedPluginWords to load.
-            - plugin-cdp
+            - '@github.com/opencharly/plugin-cdp/candy/plugin-cdp:v2026.237.1416'
         candy:
             - '@github.com/opencharly/pod-chrome-devtools-mcp:v2026.237.456'
         path_append:
