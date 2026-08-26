@@ -25,7 +25,7 @@ chrome-cdp:
             # every composing image's closure for collectReferencedPluginWords to load.
             - '@github.com/opencharly/plugin-cdp/candy/plugin-cdp:v2026.237.1416'
         candy:
-            - '@github.com/opencharly/pod-chrome-devtools-mcp:v2026.237.456'
+            - '@github.com/opencharly/pod-chrome-devtools-mcp:v2026.237.558'
         path_append:
             - "~/.local/bin"
         env:
