@@ -19,7 +19,7 @@ chrome-cdp:
             assumes a headless context, so it is NOT for target:local installs.
         require:
             - '@github.com/opencharly/layer-chrome:v2026.235.2057'
-            - '@github.com/opencharly/layer-supervisord:v2026.235.2056'
+            - '@github.com/opencharly/layer-supervisord:v2026.239.1300'
             # plugin-cdp serves the cdp: check verb (out-of-process); chrome-cdp authors cdp:
             # checks AND is the chrome-headless CDP driver, so requiring it puts plugin-cdp in
             # every composing image's closure for collectReferencedPluginWords to load.
