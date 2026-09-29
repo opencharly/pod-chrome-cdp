@@ -52,9 +52,10 @@ verb or a CDP client against `http://127.0.0.1:9222`.
 
 ## Related
 
-- Owning skill: `/charly-check:cdp` — the declarative `cdp:` check verb served by
-  `plugin-cdp`.
-- `/charly-selkies:chrome` — the parent Chrome layer.
+- Owning skill: `/charly-selkies:chrome` — the parent Chrome layer this candy
+  builds on; the closest owning procedure for the browser surface.
+- `/charly-check:cdp` — the declarative `cdp:` check verb served by `plugin-cdp`
+  (a related check-verb skill, not the owning skill).
 - `/charly-selkies:chrome-devtools-mcp` — the MCP server composed by this candy.
 - [`opencharly/charly`](https://github.com/opencharly/charly) — the charly CLI and image builder
 - [`opencharly/opencharly`](https://github.com/opencharly/opencharly) — the umbrella
