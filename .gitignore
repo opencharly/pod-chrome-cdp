@@ -1,0 +1,3 @@
+#' python bytecode from a local `python3 -m py_compile` on the helper scripts
+__pycache__/
+*.pyc

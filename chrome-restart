@@ -1,8 +1,22 @@
 #!/bin/sh
-# Kill running Chrome and relaunch via chrome-wrapper.
-# chrome-wrapper handles proxy (HTTP_PROXY/HTTPS_PROXY/NO_PROXY),
-# CDP (--remote-debugging-port), user-agent spoofing, etc.
-# Works on both sway (swaymsg exec) and labwc (direct launch).
+# Restart the browser.
+#
+# A pod that SUPERVISES Chrome (selkies-core, and the KDE pods) has one owner for the browser:
+# restarting that program IS the restart, and the supervisor waits for the old process to exit
+# before it starts the new one. Doing it here would put a SECOND browser on the same
+# --user-data-dir (chrome-wrapper's Singleton-lock cleanup hides that collision rather than
+# reporting it). The branch is decided from the init CONFIG, not the control socket: the config
+# answers even for a user the supervisor refuses, and there `supervisorctl restart` fails loudly
+# instead of quietly duplicating the browser.
+#
+# Everything below this branch is the UNCHANGED compositor-launched path: kill the browser the
+# compositor started and relaunch it. chrome-wrapper handles proxy (HTTP_PROXY/HTTPS_PROXY/
+# NO_PROXY), CDP (--remote-debugging-port), user-agent spoofing, etc., and works on both sway
+# (swaymsg exec) and labwc (direct launch).
+SUPERVISORD_CONF="${SUPERVISORD_CONF:-/etc/supervisord.conf}"
+if [ -r "$SUPERVISORD_CONF" ] && grep -qs '^\[program:chrome\]' "$SUPERVISORD_CONF"; then
+    exec supervisorctl restart chrome
+fi
 
 # Kill existing Chrome gracefully, then force if still running
 pkill -f "chrome.*remote-debugging-port" 2>/dev/null

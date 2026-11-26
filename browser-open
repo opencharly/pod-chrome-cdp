@@ -1,16 +1,35 @@
 #!/usr/bin/env node
 // Opens a URL in the running Chrome instance via Chrome DevTools Protocol.
-// If Chrome is not running, launches it on demand via sway or direct exec.
+// If Chrome is not running, launches it on demand — through the init system when it supervises
+// the browser, through the compositor otherwise.
 // Uses WebSocket CDP Page.navigate — handles all URL characters correctly.
 const url = process.argv[2];
 if (!url) { process.stderr.write('Usage: browser-open <url>\n'); process.exit(1); }
 
 const { execSync, spawn } = require('child_process');
+const { readFileSync } = require('fs');
+
+// Defaulted so the branch decision is testable outside a container; /etc/supervisord.conf in one.
+const SUPERVISORD_CONF = process.env.SUPERVISORD_CONF || '/etc/supervisord.conf';
 
 function isChromeProcess() {
   try {
     execSync('pgrep -f "chrome.*remote-debugging-port"', { stdio: 'ignore' });
     return true;
+  } catch { return false; }
+}
+
+// Is Chrome a program of the init system? Then that program is the browser's owner: it starts the
+// browser, restarts it after an exit, and waits for the old process before the new one — so a
+// launch of our own would put a SECOND browser on the same --user-data-dir (chrome-wrapper's
+// Singleton-lock cleanup hides the collision rather than reporting it).
+//
+// The answer comes from the CONFIG, not the control socket: the config answers even for a user the
+// supervisor refuses, and there `supervisorctl restart` fails loudly instead of silently
+// duplicating the browser.
+function chromeIsSupervised() {
+  try {
+    return /^\[program:chrome\]/m.test(readFileSync(SUPERVISORD_CONF, 'utf8'));
   } catch { return false; }
 }
 
@@ -43,8 +62,17 @@ async function ensureChrome() {
   }
 
   // Chrome not running at all — launch it
-  // Use the same SWAYSOCK discovery as ov sway (glob /tmp/sway-ipc.*.sock)
   process.stderr.write('browser-open: Chrome not running, launching...\n');
+  if (chromeIsSupervised()) {
+    // The init system owns the browser; restart the program and let IT own the lifecycle.
+    execSync('supervisorctl restart chrome', { stdio: 'ignore', timeout: 30000 });
+    if (await waitForCDP(15000)) return;
+    process.stderr.write('browser-open: the supervised Chrome did not come back within 15s\n');
+    process.exit(1);
+  }
+
+  // Unsupervised: the unchanged compositor-launched path.
+  // Use the same SWAYSOCK discovery as on sway (glob /tmp/sway-ipc.*.sock)
   try {
     execSync(
       'export SWAYSOCK=$(ls -t /tmp/sway-ipc.*.sock 2>/dev/null | head -1) && [ -n "$SWAYSOCK" ] && swaymsg exec chrome-wrapper',
@@ -61,7 +89,13 @@ async function ensureChrome() {
 }
 
 (async () => {
-  await ensureChrome();
+  try {
+    await ensureChrome();
+  } catch (e) {
+    // A failed supervised restart must not fall back to a duplicate browser.
+    process.stderr.write(`browser-open: could not start Chrome: ${e.message}\n`);
+    process.exit(1);
+  }
   const res = await fetch('http://127.0.0.1:9222/json/new', { method: 'PUT' });
   const tab = await res.json();
   const ws = new WebSocket(tab.webSocketDebuggerUrl);
