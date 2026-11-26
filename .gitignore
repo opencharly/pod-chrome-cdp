@@ -1,3 +1,4 @@
-#' python bytecode from a local `python3 -m py_compile` on the helper scripts
+# python bytecode from a local `python3 -m py_compile cdp-proxy` — the proxy is this repo's ONE
+# Python helper (browser-open is Node, chrome-restart is POSIX shell)
 __pycache__/
 *.pyc
