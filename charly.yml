@@ -114,6 +114,22 @@ chrome-cdp:
                 file: ${HOME}/.local/bin/browser-open
                 exists: true
                 mode: "0755"
+            - check: the restart helper restarts a SUPERVISED browser through the init system that owns it, instead of racing it with a launch of its own
+              id: chrome-restart-supervised-branch
+              file:
+                file: ${HOME}/.local/bin/chrome-restart
+                contains:
+                    - contains: "program:chrome"
+                    - contains: "supervisorctl restart chrome"
+                    - contains: "chrome-wrapper"
+            - check: browser-open delegates the same way when the init system supervises Chrome
+              id: browser-open-supervised-branch
+              file:
+                file: ${HOME}/.local/bin/browser-open
+                contains:
+                    - contains: "program:chrome"
+                    - contains: "supervisorctl restart chrome"
+                    - contains: "chrome-wrapper"
             - check: the chrome-windows extension manifest is staged under the user's data dir
               file:
                 file: ${HOME}/.local/share/chrome-windows/manifest.json
